@@ -21,10 +21,10 @@ that it can be used to answer questions.
 Example Use
 -----------
 
-  Gist 'tmp.ttl' 'The dog ate the cat.'
+    Gist 'tmp.ttl' 'The dog ate the cat.'
 
 Author
 ------
 
-  * Larry D. Lee jr. <llee454@gmail.com>
+* Larry D. Lee jr. <llee454@gmail.com>
 
