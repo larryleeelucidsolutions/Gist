@@ -4,7 +4,7 @@ Gist Readme
 Summary
 -------
 
-Gist is a crude natural language parser. It's designed, not to
+Gist is a simple natural language parser. It's designed, not to
 determine the precise nuanced meaning of long passages, but to
 extract important ideas from short passages such as RSS newsfeed
 summaries.
