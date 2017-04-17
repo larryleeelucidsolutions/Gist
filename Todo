@@ -1,0 +1,18 @@
+Todo:
+
+General
+
+* Create an XML scheme for representing mappings between parse trees and semantic network relations.
+* Add support for dynamic mappings between parse trees and semantic networks.
+* Add support for dynamically defined token types.
+
+* Preprocessor that expands contractions: don't -> do not; isn't -> is not; etc.
+* Add support for Conjunctions.
+* Add support for While, Whereas, etc.
+* Add category for like, as, etc. (prepositions?).
+
+* Tokens need to include information such as which word in a document they refer to. This information could be added to terminals and stored during tokenization.
+
+Efficiency
+
+* Add weights to each possible token interpretation. These weights should be adjusted after each successfull sentence parsing and should be used to order the way in which tokens are interpreted. For example, bat can be interpreted as both a noun and a verb. But over time the system should learn that bat is usually a noun.

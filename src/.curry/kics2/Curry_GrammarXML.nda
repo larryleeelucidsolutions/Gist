@@ -1,0 +1,1 @@
+("(Branch (\"Curry_GrammarXML\",\"C_parseGrammarFile\") ND 2 (Branch (\"Curry_GrammarXML\",\"C_parseGrammar\") ND 1 EmptyFM EmptyFM) EmptyFM)","(Branch (\"Curry_GrammarXML\",\"C_parseGrammarFile\") FO 2 (Branch (\"Curry_GrammarXML\",\"C_parseGrammar\") FO 1 EmptyFM EmptyFM) EmptyFM)","(Branch (\"Curry_Prelude\",\"C_Success\") FO 1 EmptyFM EmptyFM)","EmptyFM")

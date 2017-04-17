@@ -1,0 +1,360 @@
+Notes
+
+The following are a collection of notes/ideas/questions that I had
+while drafting this package.
+
+===== Parser: Expressiveness =====
+
+The Parser module defines a set of operators tha allow us to define
+parsers using a syntax that is similar to BNF. The resulting parsers
+will parse grammars that are left-recursive. I.E. given an input
+sequence, they will apply reductions to the sequence head.
+
+Backtracking is implemented implicitly by Curries non-determinism.
+Matching/Binding is implemented using Curry's pattern matching.
+
+The resulting grammars have only two problems when adapted for term-
+rewriting systems: They only apply reductions to the head of token
+sequences; they do not recurse automatically.
+
+There are two straightforward solutions to both. We can get the parsers
+to select non-head redexs using Curry's non-determinism and recursion.
+For example, given a parser, p, that represents a term-rewrite system,
+where the return value represents the reduction of the head of a given
+sequence, and the return value represents the remaining sequence, we
+apply the choice operator to either apply p to the current sequence or
+recurse over the tail.
+
+The recursion problem, which is required to reduce input sequences to
+their normal forms, can be handled trivially.
+
+Unlike parsers, which do necessarily return a representation, term-
+rewrite functions always return a derivation. (To see the former case,
+consider pattern matchers which simply check that input sequences are
+grammatically valid.)
+
+These considerations suggest that the Parser module can be used as the
+basis for a term re-writing module. This module would define additional
+operators/combinators.
+
+In this module, term-rewrite functions will be represented by ParserRep
+data types, where the representation will represent the a possible
+reduction of the parsed tokens, and the return value will represent the
+remaining input.
+
+In a term-rewrite system, reductions can be applied anywhere in the
+given input.
+
+Traditionally, reduction functions accept an input sequence and return
+the derivation (I.E. the result after a redex has been applied). This
+full derivation is the basis for recursion.
+
+The parser is actually behaving as a term rewrite system in that it is
+combining a sequence of tokens into a parse tree, where each terminal
+can be considered a little parse tree. The result is simply fed beck
+into the parser.
+
+Since we are working with a CFG, we need to recurse over the entire
+input/output sequences - to reduce internal redexs until we produce a
+normal form.
+
+possible implementation scheme:
+loadGrammarFile :: String -> Grammar
+bind 
+reduceHeadUsingRule (Rule pattern template) input = bind pattern input bindings &> instantiate template bindings where bindings free
+reduceHead (rule:grammar) input = reduceHeadUsingRule rule input ? reduceHead grammar input
+reduce grammar input = reduceHead grammar input ? reduce grammar $## tail input
+
+===== Interpretation =====
+
+The interpretation system maps parse trees onto semantic networks.
+A semantic netwok can be thought of as a collection of predicate statements.
+
+Each edge within the network represents a prdicate and the endpoints
+represent the predicate objects.
+
+For example, given a noun phrase "a blue bird", we can define the
+following predicates isBlue (bird), or Color bird blue, or hasProperty
+bird blue.
+
+The Intepretation function accepts a parse tree and returns a set of
+predicates.
+
+===== Tree Parsing =====
+
+Tree parsing involves defining patterns that describe tree structures,
+binding these to an input sequence, and then evaluating an expression
+using the resulting bindings.
+
+The Parser module defines two fundamental combinators: concatenation
+and alternation. We need to expend this set to include child relations.
+
+The natural syntax is to define a function that parses an input tree
+and that accepts a list of parsers that parses the subtrees. Each
+subtree binds a variable that represents the value of the matched tree.
+For example:
+
+data Tree a = Leaf a | Node [Tree a]
+
+type TreeParser a = [Tree a] -> [Tree a]
+type TreeParserRep a b = a -> TreeParser b
+
+leaf :: a -> [Tree a] -> [Tree a]
+leaf x (Leaf a:trees) | x =:= a = trees
+
+node :: ([a] -> a) -> a -> [Tree a] -> [Tree a]
+node f x (Node as:trees) | [] =:= star (tree f) bs as & x =:= f bs = trees where bs free
+
+tree :: ([a] -> a) -> a -> [Tree a] -> [Tree a]
+tree f = leaf <||> node f
+
+The system outlined above works well, when a single accumulator
+function is used to integrate sub trees. The challenge is to define a
+simple syntax that would allow users to specify different accumulator
+functions for each subtree.
+
+nonterminal (Nonterminal "article" [])
+
+===== Parser ======
+
+The parser has to meet the following requirements: efficiency,
+flexibility, and correctness.
+
+The current preference is for a top-down parser using memoization to
+avoid redundant computations.
+
+This design builds on the Parser module but has problems with
+flexibility as a result. By flexibility, I mean that users should be
+able to describe and load grammars using XML files.
+
+The Parser module represents parsers as functions that accepts token
+sequences, consume some prefix, and return the remaining tokens. The 
+module allows parsers to bind representations, which represent the
+"value" of the consumed input using the ParserRep data type.
+
+In gist, this representation is the nonterminal that the consumed
+tokens can be reduced to. There are two issues that I need to resolve.
+The fist is that grammars are not hard coded. There needs to be a
+mechanism that maps XML elements onto parser functions. The second is
+that reduction involves variable binding and substitution.
+
+Tokens contain metadata that is used during parsing and the mechanism
+in which this metadata is modified depends on the grammar rule.
+
+The current approach maps XML elements onto Rule structures. XML rule
+elements consist of a list of pattern elements followed by a template
+element. These elements are mapped one-to-one onto pattern and template
+token structures.
+
+The current mapping between these structures as parser functions is
+flawed however. The current implementation using a bottom up parsing
+algorithm. This needs to be revised.
+
+In top-down parsing algorithms, recursion is performed over grammar
+rules. This is the strategy implemented implicitly by the Parser
+module. The problem lies in mapping XML rule descriptions onto parser
+functions while encoding the variable bindings needed to perform the
+substitutions.
+
+An example encoding of some rules is given below:
+
+nonterminalType :: Token a -> String
+nonterminalType (Nonterminal x _) = x
+
+satisfyType :: String -> ParserRep (Token a) (Token a)
+satisfyType x = satisfy ((==) x . nonterminalType)
+
+article :: ParserRep (Token a) (Token a)
+article = satisfyType "article"
+
+adjective :: ParserRep (Token a) (Token a)
+adjective = satisfyType "adjective"
+
+noun :: ParserRep (Token a) (Token a)
+noun = satisfyType "noun"
+
+pronoun :: ParserRep (Token a) (Token a)
+pronoun = satisfyType "pronoun"
+
+noun_phrase :: ParserRep (Token a) (Token a)
+noun_phrase = noun x    >>> Nonterminal "noun_phrase" [[x], [], []] where x free
+noun_phrase = pronoun x >>> Nonterminal "noun_phrase" [[x], [], []] where x free
+noun_phrase = article x <*> noun_phrase y >>> y where x, y free
+noun_phrase = adjective x <*> noun_phrase (Nonterminal "noun_phrase" [[a], bs, cs]) >>> Nonterminal "noun_phrase" [[a], (x:bs), cs] where x, a, bs, cs free
+
+The examples show the natural way in which hard-coded grammar rules can
+be translated into parser expressions. This functionality is provided
+largely by Curry's pattern matching. Specifically, pattern matching is
+used to simplify variable binding and substitution.
+
+In the current implementation, this is handled explicitly using two
+function classes: bind and instantiate. Bind essentially accepts two
+lists: a string list representing variable names; and a list of values;
+and essentially zips the two lists to create an associative array.
+Instantiate, essentially accepts an associative list that represents
+variable bindings and a list of strings that essentially represents
+variable names. It then performs what is effectively a "map lookup" -
+replacing each variable with its value from the bindings list.
+
+bind :: PatternToken -> Token a -> [Binding a]
+instantiate :: [Binding a] -> TemplateToken -> Token a
+
+I need to define two functions. The first maps XML rule elements onto
+rule data structures. The second maps rule data structures onto parser
+functions.
+
+The second of these uses the bind and instantiate functions. A parser
+function has two parts, the call to functions that parse input using
+the pattern functions and the call to instantiate that returns the
+resulting binding.
+
+Top down parsing has a major problem. The parser is not guaranteed to
+terminate while searching for possible parsings. This problem applies
+to grammars that try to model natural grammars and are therefore
+recursive. The result is that, the parser may not terminate for invalid
+sentences.
+
+This problem is not apparent in bottom-up parsers. There appears to be
+no way around this problem...
+
+To see this problem, consider the following grammar:
+  A -> b | AA
+
+The implementation given below will parse any valid sentence for this
+grammar, but will search through the entire (infinite) search space
+when given an invalid sentence. (bb, bbb, ...).
+
+A bottom up parser, on the other hand, would terminate.
+
+===== Parser: Memoization =====
+
+While researching parsing online, I found several articles that suggest
+that top down parsing, coupled with memoization, can achieve polynomial
+time performance.
+
+At first glance, there appears to be two ways to implement memoization
+in Curry. The first would use monads to store the results of previous
+computations. The second would use Curry's choice feature.
+
+Once a variable is bound by Curry's search feature, its value stored
+and reused without being recalculated. For example, 
+
+  f = 1 ? 0 
+  f + f
+
+will return either 0 or 2. This is because, f is ND evaluated to either
+1 or 0 and all subsequent calls to f use this 'memoized' value.
+
+In our approach, parsers are represented by logic functions that accept
+token sequences, consume some prefix, and then return the remaining
+tokens while binding some 'representation' variable. The
+'representation' variable holds the 'value' of the consumed tokens.
+
+The inefficiency of the current approach is that the algorithm may
+repeatedly parse the same sequences as a result of backtracking.
+
+For example, consider the following grammar:
+
+  A ::= B | C
+  B ::= D b b
+  C ::= D c c
+  D ::= d d d
+
+Given the sentence "d d d c c" the current algorithm will expand D
+twice - first while trying to match B and then (after backtracking)
+while trying to match C. 
+
+In our approach, each nonterminal is associated with a parser function
+that ND iterates over its expansions while trying to find a match.
+
+  A = B <|> C
+  B = D <*> terminal 'b' <*> terminal 'b'
+  C = D <*> terminal 'c' <*> terminal 'c'
+  D = terminal 'd' <*> terminal 'd' <*> terminal 'd'
+
+When Curry ND evaluates one of these functions for a given token
+sequence, it memoizes the value and would reuse it. An example where
+memoization would occur (for free) is given below.
+
+  A = (B <*> C) <|> (B <*> D)
+
+In this case, the second call to B uses a memoized value.
+
+From "Curry: A Tutorial Introduction":
+
+  All the occurrences of a variable, whether or not local, share the
+  same value. This policy may affect both the efficiency of a program
+  execution and the result of computations involving non-deterministic
+  functions.
+
+It's important to note that this property applies to variables - not
+function calls. Note the following:
+
+  coin = 0
+  coin = 1
+  g = (x,x) where x = coin
+  f = (coin,coin)
+
+In g, the value of x is bound to the evaluated value of coin. Direct
+calls to coin however, are re-evaluated. As a result, g only returns
+(0, 0) or (1, 1) whereas f can also return (0, 1), and (1, 0).
+
+In general, function calls are re-evaluated each time they occur, while
+variables are memoized (If a variable is bound to a function, it is
+evaluated the first time, its value is stored, then reused for each
+instance).
+
+The problem is that function calls must be bound to a variable
+(hardcoding?) and there is no way to pass memoized values up to a
+callee.
+
+Another problem is that parsers are defined using combinators. Each
+combinator accepts functions as arguments and returns a new function
+(that is, in the mathematical sense, combinators act as operators). 
+Functions can be memoized, but what we really want is to memoize their
+return values. 
+
+Three problems: 1. passing memoized values to callees; 2. binding the
+values of functions composed by combinators; 3. binding the values of
+functions composed within dynamically defined functions.
+
+There are two ways to pass values back to callees: return values and
+logic variable bindings.
+
+for example, a function could bind it's return value to a logic
+variable that can be used to memoize results.
+
+The alternative strategy is to explicitly memoize values by passing
+around a memo table. 
+
+It may be helpfull to take a moment to think about what it would
+mean to memoize a parser function. Ideally, given a parser function
+such as, noun, you would define a memoized version of the
+function, denoted, memo noun, that would behave in the
+following way: whenever 'memo noun x tokens' was evaluated for
+ a unique token sequence, it would parse the tokens.
+Otherwise, it would return a precomputed result.
+
+===== Parsing: Bottom Up =====
+
+Bottom up parsing involves recursing over derivations. With each
+iteration, a redex is ND selected and reduced using a grammar rule. The
+result of the parse function is a new smaller derivation.
+
+===== Interpreter =====
+
+The interpreter allows gist to generate inferences/interpretations. An
+interpretation is a set of predicates that describe what is known about
+a passage and its subject. Users should be able to define new sets of
+inference rules and have Gist apply those rules recursively to generate
+interpretations.
+
+<input> -> tokenize -> <tokens> -> parse -> <parse tree> -> interpret
+  -> <predicates>
+
+For example:
+
+Pronoun dereferencing (determining what a pronoun refers to) is a major
+challenge.
+
+

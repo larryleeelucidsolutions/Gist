@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="utf-8"?>
+<grammar>
+  <!-- <noun a> ::= <noun_phrase a _ _> -->
+  <rule>
+    <pattern>
+      <token type="noun" name="a">
+        <param/>
+      </token>
+    </pattern>
+    <template>
+      <token type="noun phrase">
+        <param>
+          <var name="a"/>
+        </param>
+        <param/>
+        <param/>
+      </token>
+    </template>
+  </rule>
+  <!-- <pronoun a> ::= <noun_phrase a _ _> -->
+  <rule>
+    <pattern>
+      <token type="pronoun" name="a">
+        <param/>
+      </token>
+    </pattern>
+    <template>
+      <token type="noun phrase">
+        <param>
+          <var name="a"/>
+        </param>
+        <param/>
+        <param/>
+      </token>
+    </template>
+  </rule>
+  <!-- <article _> <noun_phrase a _ _ _> := a -->
+  <rule>
+    <pattern>
+      <token type="article">
+        <param/>
+      </token>
+      <token type="noun phrase" name="b">
+        <param/>
+        <param/>
+        <param/>
+      </token>
+    </pattern>
+    <template>
+      <token name="b"/>
+    </template>
+  </rule>
+  <!-- <adjective a _> <noun_phrase _ b c d> := <noun_phrase b (a:c) d> -->
+  <rule>
+    <pattern>
+      <token type="adjective" name="a">
+        <param/>
+      </token>
+      <token type="noun phrase">
+        <param name="b"/>
+        <param name="c"/>
+        <param name="d"/>
+      </token>
+    </pattern>
+    <template>
+      <token type="noun phrase">
+        <param>
+          <var name="b"/>
+        </param>
+        <param>
+          <var name="a"/>
+          <var name="c"/>
+        </param>
+        <param>
+          <var name="d"/>
+        </param>
+      </token>
+    </template>
+  </rule>
+  <!-- <preposition a _> <noun_phrase b _ _ _> ::= <prepositional_phrase a b> -->
+  <rule>
+    <pattern>
+      <token type="preposition" name="a">
+        <param/>
+      </token>
+      <token type="noun phrase" name="b">
+        <param/>
+        <param/>
+        <param/>
+      </token>
+    </pattern>
+    <template>
+      <token type="prepositional phrase">
+        <param>
+          <var name="a"/>
+        </param>
+        <param>
+          <var name="b"/>
+        </param>
+      </token>
+    </template>
+  </rule>
+  <!-- <noun_phrase _ a b c> <prepositional_phrase d _ _> ::= <noun_phrase a b (d:c)> -->
+<!--
+  <rule>
+    <pattern>
+      <token type="noun phrase">
+        <param name="a"/>
+        <param name="b"/>
+        <param name="c"/>
+      </token>
+      <token type="prepositional phrase" name="d">
+        <param/>
+        <param/>
+      </token>
+    </pattern>
+    <template>
+      <token type="noun phrase">
+        <param>
+          <var name="a"/>
+        </param>
+        <param>
+          <var name="b"/>
+        </param>
+        <param>
+          <var name="c"/>
+          <var name="d"/>
+        </param>
+      </token>
+    </template>
+  </rule>
+-->
+  <!-- <verb a _> := <verb_phrase a _ _> -->
+  <rule>
+    <pattern>
+      <token type="verb" name="a">
+        <param/>
+      </token>
+    </pattern>
+    <template>
+      <token type="verb phrase">
+        <param>
+          <var name="a"/>
+        </param>
+        <param/>
+      </token>
+    </template>
+  </rule>
+  <!-- <adverb a _> <verb_phrase _ b c d> := <verb_phrase b (a:c) d> -->
+  <rule>
+    <pattern>
+      <token type="adverb" name="a">
+        <param/>
+      </token>
+      <token type="verb phrase">
+        <param name="b"/>
+        <param name="c"/>
+      </token>
+    </pattern>
+    <template>
+      <token type="verb phrase">
+        <param>
+          <var name="b"/>
+        </param>
+        <param>
+          <var name="a"/>
+          <var name="c"/>
+        </param>
+      </token>
+    </template>
+  </rule>
+  <!-- -->
+  <rule>
+    <pattern>
+      <token type="noun phrase" name="a">
+        <param/>
+        <param/>
+        <param/>
+      </token>
+      <token type="verb phrase" name="b">
+        <param/>
+        <param/>
+      </token>
+      <token type="noun phrase" name="c">
+        <param/>
+        <param/>
+        <param/>
+      </token>
+    </pattern>
+    <template>
+      <token type="clause">
+        <param>
+          <var name="a"/>
+        </param>
+        <param>
+          <var name="b"/>
+        </param>
+        <param>
+          <var name="c"/>
+        </param>
+      </token>
+    </template>
+  </rule>
+  <!-- -->
+  <rule>
+    <pattern>
+      <token type="noun phrase" name="a">
+        <param/>
+        <param/>
+        <param/>
+      </token>
+      <token type="verb phrase" name="b">
+        <param/>
+        <param/>
+      </token>
+    </pattern>
+    <template>
+      <token type="clause">
+        <param>
+          <var name="a"/>
+        </param>
+        <param>
+          <var name="b"/>
+        </param>
+        <param />
+      </token>
+    </template>
+  </rule>
+  <!-- -->
+  <rule>
+    <pattern>
+      <token type="noun phrase">
+        <param name="noun"/>
+        <param name="adjectives"/>
+        <param name="prepositions"/>
+      </token>
+      <token type="verb phrase" name="verb_phrase">
+        <param/>
+        <param/>
+      </token>
+      <token type="adjective" name="adjective">
+        <param/>
+      </token>
+    </pattern>
+    <template>
+      <token type="noun phrase">
+        <param>
+          <var name="noun"/>
+        </param>
+        <param>
+          <var name="adjectives"/>
+          <var name="adjective"/>
+        </param>
+        <param>
+          <var name="prepositions"/>
+        </param>
+      </token>
+      <token name="verb_phrase"/>
+    </template>
+  </rule>
+</grammar>

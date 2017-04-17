@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vocab>
+  <word name="a" pos="article" />
+  <word name="about" pos="preposition" />
+  <word name="above" pos="preposition" />
+  <word name="an" pos="article" />
+  <word name="ate" pos="verb" />
+  <word name="big" pos="adjective" />
+  <word name="bird" pos="noun" />
+  <word name="bit" pos="verb" />
+  <word name="blue" pos="adjective" />
+  <word name="car" pos="noun" />
+  <word name="cat" pos="noun" />
+  <word name="cleaned" pos="adjective verb" />
+  <word name="dog" pos="noun" />
+  <word name="green" pos="adjective" />
+  <word name="he" pos="pronoun" />
+  <word name="hit" pos="adjective verb" />
+  <word name="i" pos="pronoun" />
+  <word name="in" pos="preposition" />
+  <word name="of" pos="preposition" />
+  <word name="on" pos="preposition" />
+  <word name="quickly" pos="adverb" />
+  <word name="scrubbed" pos="adjective verb" />
+  <word name="she" pos="pronoun" />
+  <word name="slowly" pos="adverb" />
+  <word name="small" pos="adjective" />
+  <word name="the" pos="article" />
+  <word name="thoroughly" pos="adverb" />
+  <word name="to" pos="preposition" />
+  <word name="wheels" pos="noun" />
+</vocab>
